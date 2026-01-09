@@ -1,0 +1,666 @@
+<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Pool Builder Template</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Alpine JS -->
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+    [x-cloak] { display: none !important; }
+    .hero-overlay {
+        background: linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 100%);
+    }
+    html { scroll-behavior: smooth; }
+
+    .accordion-content {
+        transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+    }
+    .accordion-expanded {
+        max-height: 500px;
+        opacity: 1;
+    }
+</style>
+
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    primary: 'var(--primary-color)',
+                    secondary: 'var(--secondary-color)',
+                },
+                fontFamily: {
+                    sans: ['Open Sans', 'sans-serif'],
+                    heading: ['Montserrat', 'sans-serif'],
+                }
+            }
+        }
+    }
+</script>
+</head> <body class="font-sans antialiased text-gray-800 bg-white" x-data="poolBuilderApp()" x-init="init()" x-cloak>
+<!-- LOADING STATE -->
+<div x-show="loading" class="fixed inset-0 z-50 flex items-center justify-center bg-white">
+    <div class="text-xl font-bold animate-pulse text-gray-400">Loading Experience...</div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div x-show="!loading">
+
+    <!-- NAV BAR -->
+    <nav class="bg-white shadow-md fixed w-full z-40 transition-all duration-300">
+        <div class="container mx-auto px-4 md:px-6 py-4 flex justify-between items-center relative">
+            <div class="flex items-center gap-2">
+                 <img :src="style.assets.logo_url.content" alt="Logo" class="h-10 md:h-12 w-auto object-contain">
+            </div>
+
+            <!-- Desktop Nav -->
+            <div class="hidden md:flex items-center space-x-6">
+                <div class="flex flex-col text-right">
+                    <span class="text-xs text-gray-500 font-bold uppercase tracking-wider">Call for questions</span>
+                    <a :href="'tel:' + content.contact_info.phone_value.content" class="text-lg font-heading font-bold text-gray-800 hover:text-primary transition" x-text="content.contact_info.phone_display.content"></a>
+                </div>
+                <button @click="scrollToForm()"
+                        class="bg-primary hover:bg-secondary text-white px-6 py-3 rounded-lg font-bold transition duration-300 shadow-lg"
+                        x-text="getCTA('nav')">
+                </button>
+            </div>
+
+            <!-- Mobile Hamburger -->
+            <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden text-gray-800 focus:outline-none p-2">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+
+            <!-- Mobile Dropdown -->
+            <div x-show="mobileMenuOpen"
+                 @click.away="mobileMenuOpen = false"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 -translate-y-2"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 class="absolute top-full left-0 w-full bg-white shadow-xl border-t border-gray-100 md:hidden flex flex-col items-center p-6 space-y-4">
+
+                <button @click="scrollToForm(); mobileMenuOpen = false"
+                        class="w-full bg-primary hover:bg-secondary text-white px-6 py-4 rounded-lg font-bold transition duration-300 shadow-lg text-lg"
+                        x-text="getCTA('nav')">
+                </button>
+
+                <div class="flex flex-col items-center pt-2">
+                    <span class="text-xs text-gray-500 font-bold uppercase tracking-wider">Call for questions</span>
+                    <a :href="'tel:' + content.contact_info.phone_value.content" class="text-xl font-heading font-bold text-gray-800 mt-1" x-text="content.contact_info.phone_display.content"></a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <header class="relative h-screen min-h-[600px] flex items-center bg-cover bg-center fixed-bg"
+            :style="`background-image: url('${style.assets.hero_background_url.content || 'https://images.unsplash.com/photo-1562778612-e1e0cda9915c?auto=format&fit=crop&q=80'}')`">
+        <div class="absolute inset-0 hero-overlay"></div>
+
+        <div class="container mx-auto px-4 md:px-6 relative z-10 pt-20">
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+
+                <div class="text-white space-y-8 animate-fade-in-up">
+                    <span class="text-white font-bold uppercase tracking-widest border-l-4 border-primary pl-3 text-sm"
+                          x-text="content.business_profile.location_focus.content"></span>
+
+                    <h1 class="text-4xl md:text-6xl font-heading font-bold leading-tight drop-shadow-lg"
+                        x-text="content.hero_section.headline.content"></h1>
+
+                    <p class="text-xl md:text-2xl text-gray-100 font-light max-w-lg leading-relaxed"
+                       x-text="content.hero_section.subheadline.content"></p>
+
+                    <!-- CTA Button (Always Visible) -->
+                    <div>
+                        <!-- MODIFIED: Added md: prefixes to text size and padding to handle mobile line-breaking -->
+                        <button @click="scrollToForm()"
+                                class="mt-4 bg-primary hover:bg-secondary text-white text-base md:text-lg px-2 md:px-10 py-5 rounded-lg font-bold shadow-2xl transform hover:-translate-y-1 transition duration-300 border-2 border-primary hover:border-secondary w-full md:w-auto">
+                            <span x-text="getCTA('main')"></span>
+                        </button>
+                    </div>
+                </div>
+                <div></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- TRUST BAR -->
+    <section class="bg-gray-50 py-12 border-b border-gray-200">
+        <div class="container mx-auto px-4 md:px-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center divide-y md:divide-y-0 md:divide-x divide-gray-200">
+                <template x-for="item in content.trust_bar.items">
+                    <div class="flex flex-col items-center space-y-3 px-4 pt-4 md:pt-0">
+                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xl font-bold">✓</div>
+                        <span class="font-heading font-bold text-gray-800 text-lg" x-text="item.content"></span>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </section>
+
+    <!-- INTRO & FEATURES -->
+    <section class="py-24">
+        <div class="container mx-auto px-4 md:px-6 text-center max-w-5xl">
+            <h2 class="text-3xl md:text-5xl font-heading font-bold mb-8 text-gray-900 leading-tight">
+                Why Choose <span class="text-primary underline decoration-4 decoration-primary/20" x-text="content.business_profile.company_name.content"></span>?
+            </h2>
+            <p class="text-xl text-gray-600 leading-relaxed mb-20 max-w-3xl mx-auto" x-text="content.value_proposition_grid.intro_text.content"></p>
+
+            <div class="grid md:grid-cols-3 gap-8 text-left">
+                <template x-for="feature in content.value_proposition_grid.features">
+                    <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-lg hover:shadow-xl transition-shadow duration-300 relative overflow-hidden group">
+                        <div class="absolute top-0 left-0 w-2 h-full bg-primary group-hover:w-full transition-all duration-500 opacity-5"></div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-4 relative z-10" x-text="feature.title"></h3>
+                        <p class="text-gray-600 leading-relaxed relative z-10" x-text="feature.description"></p>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </section>
+
+    <!-- PAIN POINT REMOVER -->
+    <section class="py-24 bg-gray-900 text-white relative overflow-hidden">
+        <div class="container mx-auto px-4 md:px-6 relative z-10 flex flex-col lg:flex-row items-center gap-16">
+            <div class="lg:w-1/2 space-y-6">
+                <div class="inline-block bg-primary/20 text-primary font-bold px-4 py-1 rounded-full text-sm mb-2">Hassle-Free Process</div>
+                <h2 class="text-3xl md:text-5xl font-heading font-bold leading-tight" x-text="content.pain_point_remover.headline.content"></h2>
+                <p class="text-lg text-gray-300 leading-relaxed" x-text="content.pain_point_remover.body_copy.content"></p>
+            </div>
+            <div class="lg:w-1/2 w-full bg-white/5 backdrop-blur-md p-10 rounded-2xl border border-white/10 relative">
+                <div class="flex text-yellow-400 text-2xl mb-6 tracking-wide">★★★★★</div>
+                <p class="italic text-xl text-gray-100 mb-8 leading-relaxed">"<span x-text="content.social_proof.review_highlight.content"></span>"</p>
+                <div class="border-t border-gray-700 pt-6">
+                    <!-- Updated Social Proof Format -->
+                    <div class="font-bold text-white text-lg">
+                        — <span x-text="content.social_proof.review_author_name.content"></span>, <span x-text="content.social_proof.review_author_location.content"></span> Pool Owner
+                    </div>
+                    <div class="text-sm text-primary font-semibold mt-1 flex items-center gap-2">
+                        <span x-text="content.social_proof.google_rating_text.content"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- RECENT PROJECTS SLIDER -->
+    <section x-show="style.assets.recent_projects && style.assets.recent_projects.length > 0" class="py-24 bg-white border-b border-gray-100">
+        <div class="container mx-auto px-4 md:px-6 max-w-5xl">
+            <h2 class="text-3xl font-heading font-bold text-center mb-10 text-gray-900">Recent Projects</h2>
+
+            <div x-data="{ activeSlide: 0, timer: null }"
+                 x-init="timer = setInterval(() => { activeSlide = activeSlide === style.assets.recent_projects.length - 1 ? 0 : activeSlide + 1 }, 2800)"
+                 class="relative w-full">
+
+                <div class="relative w-full h-[420px] md:h-[540px]">
+                    <template x-for="(project, index) in style.assets.recent_projects" :key="index">
+                        <div x-show="activeSlide === index"
+                             x-transition:enter="transition ease-out duration-700"
+                             x-transition:enter-start="opacity-0"
+                             x-transition:enter-end="opacity-100"
+                             x-transition:leave="transition ease-in duration-700 absolute"
+                             x-transition:leave-start="opacity-100"
+                             x-transition:leave-end="opacity-0"
+                             class="absolute inset-0 flex flex-col items-center">
+
+                            <div class="h-[320px] md:h-[448px] w-full flex items-center justify-center mb-6">
+                                <img :src="project.image_url" class="max-h-full max-w-full object-contain rounded-2xl shadow-lg">
+                            </div>
+
+                            <p x-show="project.description && project.description.length > 0"
+                               x-text="project.description"
+                               class="text-gray-600 font-medium text-lg text-center max-w-2xl animate-fade-in px-4"></p>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="flex justify-center gap-2 mt-4">
+                    <template x-for="(project, index) in style.assets.recent_projects" :key="index">
+                        <button @click="activeSlide = index; clearInterval(timer)"
+                                class="w-2 h-2 rounded-full transition-all duration-300"
+                                :class="activeSlide === index ? 'bg-primary w-6' : 'bg-gray-300 hover:bg-gray-400'">
+                        </button>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- BOTTOM FORM SECTION (Always Visible) -->
+    <section id="contact-section" class="py-24 bg-gray-50">
+        <div class="container mx-auto px-4 md:px-6 max-w-3xl bg-white p-8 md:p-12 rounded-3xl shadow-2xl border border-gray-100">
+            <div class="text-center mb-10">
+                <h2 class="text-2xl md:text-4xl font-heading font-bold text-gray-900 mt-2"
+                    x-text="getFormHeadline()"></h2>
+                <p class="text-gray-500 mt-4 text-lg">Enter your details below. We'll be in touch within 24 hours.</p>
+            </div>
+            <div x-html="renderForm('bottom')"></div>
+        </div>
+    </section>
+
+    <!-- FAQ SECTION -->
+    <section class="py-24 bg-white border-t border-gray-200">
+        <div class="container mx-auto px-4 md:px-6 max-w-3xl">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-heading font-bold text-gray-900" x-text="faq.faq_section.section_title"></h2>
+                <p class="text-gray-500 mt-2">Answers to your common questions</p>
+            </div>
+
+            <div class="space-y-4">
+                <template x-for="(item, index) in getAllFaqs()" :key="index">
+                    <div class="border border-gray-200 rounded-lg bg-gray-50 overflow-hidden" x-data="{ expanded: false }">
+                        <button @click="expanded = !expanded" class="w-full px-6 py-4 flex justify-between items-center text-left focus:outline-none bg-white hover:bg-gray-50 transition">
+                            <span class="font-bold text-gray-800 text-lg" x-text="item.question"></span>
+                            <span class="text-primary font-bold text-2xl transform transition-transform duration-300"
+                                  :class="{'rotate-45': expanded}">+</span>
+                        </button>
+                        <div class="bg-gray-50 px-6 text-gray-600 leading-relaxed accordion-content"
+                             :class="{'accordion-expanded py-4': expanded}">
+                            <p x-text="item.answer"></p>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-gray-900 border-t border-gray-800 text-white py-12">
+        <div class="container mx-auto px-4 md:px-6 text-center space-y-4">
+            <p class="text-gray-400 text-sm">
+                &copy; <span x-text="new Date().getFullYear()"></span> <span x-text="content.business_profile.company_name.content"></span>. All rights reserved.
+            </p>
+
+            <!-- Compliance Loop (ABN, Lic, etc) -->
+            <div class="flex flex-wrap justify-center gap-4 pt-2">
+                <template x-for="item in content.legal_compliance.compliance_items">
+                    <span x-show="item.content" class="inline-block border border-gray-700 rounded px-3 py-1 text-xs text-gray-400 font-mono tracking-wide" x-text="item.content"></span>
+                </template>
+            </div>
+
+            <!-- Legal Links -->
+            <div class="flex justify-center gap-6 mt-6 text-xs text-gray-500">
+                <a href="#" class="hover:text-gray-300 transition">Privacy Policy</a>
+                <a href="#" class="hover:text-gray-300 transition">Terms & Conditions</a>
+            </div>
+        </div>
+    </footer>
+
+</div>
+
+<!-- LOGIC ENGINE -->
+<script>
+    function poolBuilderApp() {
+        return {
+            loading: true,
+            mobileMenuOpen: false,
+            content: {},
+            faq: {},
+            style: {},
+
+            async init() {
+                try {
+                    this.content = {
+"business_profile": {
+"company_name": {
+"content": "Pools By Design",
+"_context": "The exact business name."
+},
+"location_focus": {
+"content": "Sunshine Coast & Surrounding Areas",
+"_context": "The primary city or region they serve (e.g., 'Sydney & NSW', 'Victoria'). Critical for local trust."
+},
+"funnel_strategy": {
+"content": "CUSTOM",
+"_context": "Analyze the offer. Returns 'VOLUME' if they offer packages/fixed prices/fiberglass. Returns 'CUSTOM' if they focus on concrete/bespoke designs/lifestyle."
+},
+"brand_voice": {
+"content": "Luxury, Bespoke, and Artisan-Focused",
+"_context": "Adjectives describing their tone. E.g., 'Luxury and Minimalist', 'Urgent and Retail', or 'Family-Friendly and Safe'."
+}
+},
+"contact_info": {
+"phone_display": {
+"content": "(07) 5438 8046",
+"_context": "The primary phone number formatted for display (e.g. '(07) 5455 1234'). Look in the header or footer."
+},
+"phone_value": {
+"content": "0754388046",
+"_context": "The phone number sanitized for a link (e.g. '0754551234' - no spaces, dashes or brackets)."
+},
+"email": {
+"content": "info@poolsbydesign.net.au",
+"_context": "The primary public email address found on the site."
+}
+},
+"legal_compliance": {
+"compliance_items": [
+{
+"content": "QBCC Licence No: 1169353",
+"_context": "Builder License Number found in footer (e.g. 'QBCC Lic #12345' or 'NSW Builder Lic 5555C')."
+},
+{
+"content": "ABN: 14 137 458 470",
+"_context": "ABN or ACN if found in footer."
+},
+{
+"content": "SPASA Member",
+"_context": "Any other key status (e.g. 'Master Builders Member' or 'SPASA Member'). Leave blank if not found."
+}
+]
+},
+"hero_section": {
+"headline": {
+"content": "Sunshine Coast's Most Trusted Luxury Pool Builders",
+"_context": "A high-impact H1. If 'VOLUME', focus on the offer (e.g., 'Fixed Price Pools Ready for Summer'). If 'CUSTOM', focus on the outcome (e.g., 'Sydney's Most Trusted Bespoke Pool Builders'). Keep under 10 words."
+},
+"subheadline": {
+"content": "Over 30 years building award-winning bespoke pools across the Sunshine Coast. Transform your backyard into a luxury lifestyle.",
+"_context": "Support the H1. Mention the location and a key trust signal. E.g., 'Over 1,000 pools built in [Location]. Start your journey today.'"
+},
+"cta_text": {
+"content": "Request Design Consultation",
+"_context": "The button text. If 'VOLUME', use 'Get Fixed Price Quote'. If 'CUSTOM', use 'Request Design Consultation'."
+},
+"visual_style_prompt": {
+"content": "Luxury infinity-edge concrete pool with glass fencing, surrounded by lush tropical landscaping, modern fire pit feature, aerial drone perspective at dusk with LED lighting",
+"_context": "Describe the ideal background image based on their site. E.g., 'Drone shot of high-end concrete pool with glass fencing' or 'Happy family jumping into a fiberglass pool'."
+}
+},
+"trust_bar": {
+"type": {
+"content": "PARTNERS",
+"_context": "Choose 'STATS' (if they mention years in business or # of pools), 'PARTNERS' (if they list suppliers like Hayward/Madimack), or 'ASSOCIATIONS' (SPASA, Awards)."
+},
+"items": [
+{
+"content": "MagnaPool Certified Partner",
+"_context": "Item 1 text or image alt-text (e.g., '1,000+ Builds' or 'SPASA Member')."
+},
+{
+"content": "SPASA Award Winner",
+"_context": "Item 2 text or image alt-text."
+},
+{
+"content": "Astral Pool Premium Installer",
+"_context": "Item 3 text or image alt-text."
+}
+]
+},
+"value_proposition_grid": {
+"intro_text": {
+"content": "We don't just build pools—we design complete outdoor living environments tailored to your lifestyle. Backed by 30+ years of craftsmanship and owner-operated care, every project receives the attention to detail your investment deserves.",
+"_context": "A 2-sentence hook introducing why they are different. Focus on 'Not just a pool, a lifestyle' or 'Quality without compromise'."
+},
+"features": [
+{
+"title": "Bespoke Custom Concrete Designs",
+"_context": "Feature 1 Title. Look for 'Mineral Pools', 'Fixed Prices', or 'In-House Team'.",
+"description": "Unparalleled design flexibility lets you create unique shapes with integrated spas, waterfalls, and infinity edges that perfectly complement your landscape and lifestyle vision."
+},
+{
+"title": "Advanced Filtration Systems",
+"_context": "Feature 2 Title. Look for 'Energy Efficiency', 'Quick Install', or 'Custom Design'.",
+"description": "Choose from MagnaPool mineral systems, Naked freshwater technology, or traditional saltwater—all engineered for superior water quality, reduced chemicals, and lower maintenance."
+},
+{
+"title": "Full-Service Build & Support",
+"_context": "Feature 3 Title. Look for 'Warranty', 'Australian Made', or 'Technology'.",
+"description": "From council approvals and engineering to landscaping, fencing, and equipment—we manage every detail. Plus, enjoy 4 weeks of complimentary pool servicing after handover."
+}
+]
+},
+"pain_point_remover": {
+"headline": {
+"content": "We Handle The Council Approvals, You Handle The Swimming",
+"_context": "A headline addressing the stress of building. E.g., 'We Handle The Council, You Handle The Swimming'."
+},
+"body_copy": {
+"content": "Building a pool shouldn't be stressful. Our experienced team manages all council permits, engineering certifications, pool structure inspections, and final approvals—so you never have to navigate the red tape. We're fully licensed and insured (QBCC 1169353), ensuring your project meets all Queensland pool safety standards and building regulations from start to finish. You focus on choosing finishes and planning pool parties—we'll take care of the rest.",
+"_context": "A paragraph explaining they handle DA approvals, engineering, permits, and compliance. This is a critical conversion element found in all top builders."
+}
+},
+"social_proof": {
+"review_highlight": {
+"content": "Gary and his team delivered a stunning pool that exceeded our expectations—professional, reliable, and a true pleasure to work with from design to handover.",
+"_context": "Extract the single most persuasive sentence from a customer testimonial found on their site."
+},
+"review_author_name": {
+"content": "Sarah",
+"_context": "First name of the reviewer (e.g. 'Sarah'). If not found, use 'Local'."
+},
+"review_author_location": {
+"content": "Noosa",
+"_context": "The town or suburb of the reviewer (e.g. 'Noosa'). If not found, use the city name."
+},
+"google_rating_text": {
+"content": "Rated 5 Stars by Sunshine Coast Families",
+"_context": "Check Google Maps rating. If > 4.5, output 'Rated 5 Stars by [Location] Families'. If < 4.5 or unknown, output 'Trusted by [Location] Locals' (Do not output the specific number if low)."
+}
+},
+"lead_form_strategy": {
+"position": {
+"content": "BOTTOM_OF_PAGE",
+"_context": "Always 'BOTTOM_OF_PAGE' based on latest template logic."
+},
+"form_header": {
+"content": "Ready to Start Your Pool Project? Get Your Free On-Site Design Consultation",
+"_context": "The headline above the form. If CUSTOM strategy: 'Ready to Start Your Pool Project? Get Your Free On-Site Design Consultation'. If VOLUME strategy: 'Ready to Start Your Pool Project? Get Your Free On-Site Quote'."
+},
+"qualifying_questions": {
+"ask_budget": {
+"content": true,
+"_context": "Must be TRUE if funnel_strategy is 'CUSTOM' (Concrete pools vary wildly in price). Set to FALSE only if funnel_strategy is 'VOLUME' (Fiberglass pools have fixed prices)."
+},
+"ask_access": {
+"content": true,
+"_context": "Always True for pool builders. Ask about tight access or machinery width."
+},
+"ask_timeline": {
+"content": true,
+"_context": "Always True. 'When are you hoping to swim?'"
+}
+}
+}
+};
+this.faq = {
+"faq_section": {
+"section_title": "Frequently Asked Questions",
+"universal_questions": [
+{
+"question": "Do you handle council approvals and permits?",
+"answer": "Yes, all Pools By Design quotes include pool certification and final approval. We manage the council permit process as part of our comprehensive service.",
+"_context": "Explain if they handle the DA/Complying Development process. (Most do, find the confirmation)."
+},
+{
+"question": "How long does the build process take?",
+"answer": "Construction typically takes 8 to 12 weeks once all approvals are in place. Design finalisation and council permits can add a few more weeks initially.",
+"_context": "Find their estimated timeline. If concrete, usually 3-6 months. If fibreglass, usually 2-4 weeks. If not stated, give a standard industry estimate based on their pool type."
+},
+{
+"question": "What areas do you service?",
+"answer": "We service the entire Sunshine Coast including Noosa, Maroochydore, Aura, Beerwah, Warana, Coolum, Buderim, Gympie, the Hinterland, and from Bribie Island to Gympie.",
+"_context": "List the specific regions/suburbs mentioned on their site."
+}
+],
+"custom_questions": [
+{
+"question": "What pool service is included with every new pool?",
+"_context": "Find a specific USP or technical detail. E.g. 'What is the lifetime structural warranty?' or 'Do you offer Mineral Pools?'",
+"answer": "Every new pool includes a complimentary 4-week pool service upon handover, plus a handover kit with chemicals and maintenance training. 12-month maintenance packages are also available."
+},
+{
+"question": "What filtration systems do you offer?",
+"_context": "Find another specific detail. E.g. 'Can you work with tight access sites?'",
+"answer": "We offer mineral pools, fresh water pools, and saltwater pools. Every system includes superior filtration and multi-LED lighting as standard with your custom design."
+},
+{
+"question": "Does the quote include pool fencing and landscaping?",
+"_context": "Find a finance or payment question. E.g. 'Do you offer payment plans?'",
+"answer": "Yes, we can include pool fencing in your quote and help with landscaping. We provide ideas and organise associated landscapers for final design and pricing."
+}
+]
+}
+};
+this.style = {
+"assets": {
+"logo_url": {
+"content": "https://lirp.cdn-website.com/6d2e0439/dms3rep/multi/opt/PBD+Logo+-+Transparent+background-291w.png",
+"_context": "The URL of the company logo (PNG or SVG preferred)."
+},
+"hero_background_url": {
+"content": "https://lirp.cdn-website.com/6d2e0439/dms3rep/multi/opt/IMG_6495-1920w.jpeg",
+"_context": "The high-quality banner image for the top of the website."
+},
+"recent_projects": [
+{
+"image_url": "https://scontent-syd2-1.cdninstagram.com/v/t51.75761-15/469731978_18369213493115924_3459947918633940515_n.jpg?stp=dst-jpg_e35_tt6&_nc_cat=111&ig_cache_key=MzUyMTAwNjk0MzE4NjIxMjY4Mg%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjE0NDB4MTQzOS5zZHIuQzMifQ%3D%3D&_nc_ohc=Xe3zC2OG9sgQ7kNvwH7SrR7&_nc_oc=AdkiyJtEMq2qAlQMJg6sdOcMGVk84c9QK3DcuXKKO97rTFqC81hMThcgJ0UBBxY31X0&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent-syd2-1.cdninstagram.com&_nc_gid=2SHygeHNMW-OrCthZwdkJw&oh=00_AfrwShhM71TIXFaKChu-WEs3UEs2h8nr17Np4tQvxCgC0w&oe=696653D6",
+"_context": "URL of the finished pool project.",
+"description": "Project Sunrise"
+},
+{
+"image_url": "https://scontent-syd2-1.cdninstagram.com/v/t51.82787-15/591122145_18422343766115924_7408830016028649562_n.jpg?stp=dst-jpg_e35_tt6&_nc_cat=107&ig_cache_key=Mzc4MjczNjg5MDkwMzUyODk1OA%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjE0NDB4MTA4MC5zZHIuQzMifQ%3D%3D&_nc_ohc=5fQyHPOtdB0Q7kNvwG1OLQN&_nc_oc=AdmnMJBTid9B_bJ583PyCCfx1Keomj0eZfawR4fo8fygUSALK71YFfa3q5VBZ-_UCCg&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent-syd2-1.cdninstagram.com&_nc_gid=2SHygeHNMW-OrCthZwdkJw&oh=00_Afp9WdhcfZi4KnJosZf73HrTFjMgPI7s8qIrATqH8MUOkg&oe=69663692",
+"_context": "URL of the finished pool project.",
+"description": "Project Parakeet"
+},
+{
+"image_url": "https://scontent-syd2-1.cdninstagram.com/v/t51.82787-15/587710007_18420706771115924_1893372191236647200_n.jpg?stp=dst-jpg_e35_s1080x1080_tt6&_nc_cat=110&ig_cache_key=Mzc3MzE3OTI5MjkzMjA0NzY4MQ%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjE0NDB4MTA3OS5zZHIuQzMifQ%3D%3D&_nc_ohc=xHz-jCV34rwQ7kNvwGRosLq&_nc_oc=AdliBwpY-x8ipmyu72fEDCB63Pf4y-ojRjoI1ZAkxuv4P3mEh8IyUqqPabU3VcoIgNc&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent-syd2-1.cdninstagram.com&_nc_gid=2SHygeHNMW-OrCthZwdkJw&oh=00_Afqn33vl0p_MiN70w5xnF-8MuBe8iZ8Nv2ycflTFb8bH8A&oe=69662667",
+"_context": "URL of the finished pool project.",
+"description": "Project Tallow Wood"
+},
+{
+"image_url": "https://scontent-syd2-1.cdninstagram.com/v/t51.82787-15/582830125_18419311573115924_3243672850860904191_n.jpg?stp=dst-jpg_e35_s1080x1080_tt6&_nc_cat=105&ig_cache_key=Mzc2NTIxODY4NzYwMDIzNjkwMw%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjE0NDB4MTA4MC5zZHIuQzMifQ%3D%3D&_nc_ohc=oNU5s9lFo0AQ7kNvwEkzP7v&_nc_oc=Adn0e3U7xw2xi1XlhbPALIiSYE_Icno5ZuBBwrRQc-UNc4vxSfO7xPHJJPITuAZk7kQ&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent-syd2-1.cdninstagram.com&_nc_gid=2SHygeHNMW-OrCthZwdkJw&oh=00_Afrxb2jaCy_eJXhIo3Vw3yEgKxGvl6_yDgWGxwbN9CsoXA&oe=69661FB5",
+"_context": "URL of the finished pool project.",
+"description": "Project Dahlia"
+},
+{
+"image_url": "https://scontent-syd2-1.cdninstagram.com/v/t51.82787-15/573044169_18415796119115924_613643626789536913_n.jpg?stp=dst-jpg_e35_s1080x1080_tt6&_nc_cat=100&ig_cache_key=Mzc1ODE4MzIyNDcwODM0NjcyNw%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjE0NDB4MTA4MC5zZHIuQzMifQ%3D%3D&_nc_ohc=ygWdmoSjVw4Q7kNvwFY8z4v&_nc_oc=AdmLcGhc3uqZnslXEq2ep7-s9mIBUmH-i3GQIhwVfYgDLKPv60iMIV8iu42bCJhymmo&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent-syd2-1.cdninstagram.com&_nc_gid=2SHygeHNMW-OrCthZwdkJw&oh=00_AfowaZTHtny5ARgZNfuYu0U810RmTFcjigufTMIfKw4x2A&oe=696628CF",
+"_context": "URL of the finished pool project.",
+"description": "Project Ely"
+},
+{
+"image_url": "https://scontent-syd2-1.cdninstagram.com/v/t51.82787-15/565429046_18413016079115924_5641500067498745413_n.jpg?stp=dst-jpg_e35_s1080x1080_tt6&_nc_cat=106&ig_cache_key=Mzc0NTEwMDA3NzI2MzM3NzIwMg%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjE0NDB4MTA4MC5zZHIuQzMifQ%3D%3D&_nc_ohc=237LgwZxrEwQ7kNvwFPuat1&_nc_oc=AdluTsUVqMBZqw9FWSq6Kpp-78-6PiEJJ9OhcbIUPKh0IgrAYAVYlbgc1RyTvpFreJY&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent-syd2-1.cdninstagram.com&_nc_gid=2SHygeHNMW-OrCthZwdkJw&oh=00_AfrMB--VrHnUyDfdubSbKENwxPiZOaQpEXhDmybRwAo_fg&oe=69664E7F",
+"_context": "URL of the finished pool project.",
+"description": "Project Oomoo"
+},
+{
+"image_url": "https://scontent-syd2-1.cdninstagram.com/v/t51.82787-15/552959788_18409591636115924_1941114000343297144_n.jpg?stp=dst-jpg_e35_s1080x1080_tt6&_nc_cat=103&ig_cache_key=MzcyODk2NTI1NDM4ODA5MDUwNQ%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjE0NDB4MTA3OC5zZHIuQzMifQ%3D%3D&_nc_ohc=tJkgSW7A19sQ7kNvwHeaSMD&_nc_oc=AdmUvbDP6sIzeSXUVt5L7qm6-3WQnec41SaQgE6L6w4AHIMGjyeTz7-gNQcIeiyq4MA&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent-syd2-1.cdninstagram.com&_nc_gid=rkfhDZdgs9HCsAyMIN90Bw&oh=00_Afo6keW2JNuvri9HRa-k-knVG75DhF9oghrLm5Gn952tOw&oe=69665387",
+"_context": "URL of the finished pool project.",
+"description": "Project Conway"
+},
+{
+"image_url": "https://scontent-syd2-1.cdninstagram.com/v/t51.82787-15/545334517_18407733097115924_393530028214185563_n.jpg?stp=dst-jpg_e35_s1080x1080_tt6&_nc_cat=101&ig_cache_key=MzcxODgwMjY5MzU3MTE1MjMwNQ%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjE0NDB4MTA4MC5zZHIuQzMifQ%3D%3D&_nc_ohc=EtkHxLClZWQQ7kNvwF0V-mg&_nc_oc=AdklPlAsCqJU9Qq73JunbLrdSoqfbzK8rKbOXBrdu7HuAW00c6CIAviZdPHFGfA5hME&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent-syd2-1.cdninstagram.com&_nc_gid=rkfhDZdgs9HCsAyMIN90Bw&oh=00_AfqH5fFLdCihVKsSHhpdUlwb2Na3Cb-ZKmodAVMI2J3y7g&oe=69664F67",
+"_context": "URL of the finished pool project.",
+"description": "Project Belli Creek"
+},
+{
+"image_url": "https://scontent-syd2-1.cdninstagram.com/v/t51.82787-15/541354097_18406762090115924_1125804231077500810_n.jpg?stp=dst-jpg_e35_s1080x1080_tt6&_nc_cat=100&ig_cache_key=MzcxMzE4MDMzMTc5NDQyNzE3NA%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjE0NDB4MTEyMi5zZHIuQzMifQ%3D%3D&_nc_ohc=MQ6ntNdhi9sQ7kNvwH31yxC&_nc_oc=AdmBuXUgIt0TQQSVV8eWyto-NSEg2nevkA4soh0OEj5kPRI7G55op_ibocjjx86P2G0&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent-syd2-1.cdninstagram.com&_nc_gid=rkfhDZdgs9HCsAyMIN90Bw&oh=00_AfrqLXLZ6HOOLumjfSayXkon7QHUN9R6DTnm9EF8tLv6Aw&oe=69663DEC",
+"_context": "URL of the finished pool project.",
+"description": "Project Victor"
+},
+{
+"image_url": "https://scontent-syd2-1.cdninstagram.com/v/t51.75761-15/502530013_18393645553115924_6636179430357797064_n.jpg?stp=dst-jpg_e35_tt6&_nc_cat=105&ig_cache_key=MzY0MzUwMjQ2Mjk2NTI4NTAzMg%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjE0NDB4MTQ0MC5zZHIuQzMifQ%3D%3D&_nc_ohc=rtrfp4vuMekQ7kNvwEWMjIW&_nc_oc=Adn3inkEvmzAkIZ90MaJeDDgj8D2t2yzbSY76z_zye9zYVQCFsGtj3XmXzj8Qadv_Ys&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent-syd2-1.cdninstagram.com&_nc_gid=11-EEiMTE98LY9opeESowQ&oh=00_AfqLgIh8ppQm0VQ7WkPGRITwNUTV3NQerR42XFner3Nwog&oe=6966329D",
+"_context": "URL of the finished pool project.",
+"description": "Project Netherby"
+}
+]
+}
+};
+
+                    // Apply Color Theme
+                    document.documentElement.style.setProperty('--primary-color', '#0ea5e9');
+                    document.documentElement.style.setProperty('--secondary-color', '#0369a1');
+
+                    this.loading = false;
+                } catch (error) {
+                    console.error("Error loading JSON:", error);
+                }
+            },
+
+            scrollToForm() {
+                document.getElementById('contact-section').scrollIntoView({ behavior: 'smooth' });
+            },
+
+            getCTA(type) {
+                const strategy = this.content.business_profile.funnel_strategy.content;
+                if (strategy === 'CUSTOM') {
+                    if (type === 'nav') return 'Book a Free Consult';
+                    return 'Book a Free Design Consultation';
+                } else {
+                    return 'Book a Free Quote';
+                }
+            },
+
+            getFormHeadline() {
+                 const strategy = this.content.business_profile.funnel_strategy.content;
+                 return strategy === 'CUSTOM'
+                    ? "Ready to Start Your Pool Project? Get Your Free On-Site Design Consultation"
+                    : "Ready to Start Your Pool Project? Get Your Free On-Site Quote";
+            },
+
+            getAllFaqs() {
+                if (!this.faq.faq_section) return [];
+                return [...this.faq.faq_section.universal_questions, ...this.faq.faq_section.custom_questions];
+            },
+
+            renderForm(location) {
+                const q = this.content.lead_form_strategy.qualifying_questions;
+                const strategy = this.content.business_profile.funnel_strategy.content;
+
+                // MODIFIED: Logic for timeline options
+                let timelineOptions = '';
+                if (strategy !== 'CUSTOM') {
+                    timelineOptions += '<option>Immediately</option>';
+                }
+                timelineOptions += '<option>3-6 Months</option><option>6-12 Months</option>';
+
+                let html = `
+                    <form class="space-y-5" onsubmit="event.preventDefault(); alert('Lead Submitted!');">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div><label class="block text-sm font-bold text-gray-700 mb-1">First Name</label><input type="text" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary outline-none" required></div>
+                            <div><label class="block text-sm font-bold text-gray-700 mb-1">Last Name</label><input type="text" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary outline-none" required></div>
+                        </div>
+                        <div><label class="block text-sm font-bold text-gray-700 mb-1">Email</label><input type="email" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary outline-none" required></div>
+                        <div><label class="block text-sm font-bold text-gray-700 mb-1">Phone</label><input type="tel" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary outline-none" required></div>
+                        <div><label class="block text-sm font-bold text-gray-700 mb-1">Suburb</label><input type="text" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary outline-none" required></div>
+                `;
+
+                // MODIFIED: Using timelineOptions variable
+                if (q.ask_timeline.content) html += `<div><label class="block text-sm font-bold text-gray-700 mb-1">When are you hoping to swim?</label><select class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary outline-none bg-white">${timelineOptions}</select></div>`;
+
+                if (q.ask_access.content) html += `<div><label class="block text-sm font-bold text-gray-700 mb-1">Backyard Access?</label><select class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary outline-none bg-white"><option>Easy Access</option><option>Tight Access</option><option>Crane Required</option></select></div>`;
+
+                // MODIFIED: Removed 40k-60k option
+                if (q.ask_budget.content) html += `<div><label class="block text-sm font-bold text-gray-700 mb-1">Estimated Budget?</label><select class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary outline-none bg-white"><option>$60k - $90k</option><option>$90k - $120k</option><option>$120k+</option></select></div>`;
+
+                html += `
+                        <button type="submit" class="w-full bg-primary hover:bg-secondary text-white font-bold py-4 rounded-lg shadow-xl hover:shadow-2xl transition-all duration-300 mt-6 text-lg transform hover:-translate-y-1">
+                            ${this.getCTA('main')}
+                        </button>
+                    </form>
+                `;
+                return html;
+            },
+
+            // GENERIC PLACEHOLDERS
+            getGenericPlaceholderContent() { return {
+                "business_profile": { "funnel_strategy": { "content": "CUSTOM" }, "location_focus": { "content": "City" } },
+                "hero_section": { "headline": { "content": "Loading..." }, "subheadline": { "content": "Loading..." } },
+                "contact_info": { "phone_display": { "content": "000 000 000" }, "phone_value": { "content": "000000000" } },
+                "legal_compliance": { "compliance_items": [] },
+                "trust_bar": { "items": [] },
+                "value_proposition_grid": { "features": [] },
+                "pain_point_remover": { "headline": { "content": "" }, "body_copy": { "content": "" } },
+                "social_proof": { "review_author_name": { "content": "" }, "review_author_location": { "content": "" } },
+                "lead_form_strategy": { "qualifying_questions": { "ask_budget": { "content": true } } }
+            }; },
+            getGenericPlaceholderStyle() { return { "assets": { "logo_url": { "content": "" }, "hero_background_url": { "content": "" } } }; },
+            getGenericPlaceholderFaq() { return { "faq_section": { "section_title": "FAQ", "universal_questions": [], "custom_questions": [] } }; }
+        }
+    }
+</script>
+</body> </html>

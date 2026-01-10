@@ -155,10 +155,10 @@
                         <p class="text-lg md:text-xl text-gray-100 font-light max-w-2xl leading-relaxed tracking-wide"
                            x-text="content.hero_section.subheadline.content"></p>
 
-                        <!-- CTA Button: Reverted to size-to-content (Removed max-w-xs) -->
+                        <!-- CTA Button: Mobile Fix applied (whitespace-nowrap + mobile text sizing) -->
                         <div class="flex justify-start">
                             <button @click="scrollToForm()"
-                                    class="mt-4 border border-white text-white hover:bg-white hover:text-gray-900 px-10 py-4 rounded-full font-medium text-xs uppercase tracking-wider transition duration-300 flex items-center justify-center gap-3">
+                                    class="mt-4 border border-white text-white hover:bg-white hover:text-gray-900 px-6 md:px-10 py-4 rounded-full font-medium text-[10px] md:text-xs uppercase tracking-wide md:tracking-wider whitespace-nowrap transition duration-300 flex items-center justify-center gap-3">
                                 <span x-text="getCTA('main')"></span>
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                             </button>
@@ -356,7 +356,7 @@
             </h1>
 
             <p class="text-lg md:text-xl text-gray-600 font-light text-center max-w-xl mb-16 leading-relaxed">
-                We'll reach out within 48 hours to arrange a time for your free design consultation.
+                We will reach out within 48 hours to arrange a time for your free design consultation.
             </p>
 
             <!-- CTA Box (Styled to match Brand) -->

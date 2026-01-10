@@ -16,9 +16,21 @@
 
     <style>
         [x-cloak] { display: none !important; }
+
+        /* HERO OVERLAY LOGIC */
         .hero-overlay {
-            background: linear-gradient(to right, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.2) 100%);
+            /* Mobile: Uniform dark overlay for full readability */
+            background-color: rgba(0,0,0,0.6);
         }
+
+        @media (min-width: 768px) {
+            .hero-overlay {
+                /* Desktop: Gradient fading from left to right */
+                background-color: transparent;
+                background: linear-gradient(to right, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.1) 100%);
+            }
+        }
+
         html { scroll-behavior: smooth; }
 
         .accordion-content {
